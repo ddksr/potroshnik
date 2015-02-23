@@ -1,0 +1,23 @@
+{
+  "name": "potroshnik",
+  "version": "0.0.1",
+  "homepage": "https://github.com/ddksr/potroshnik",
+  "authors": [
+    "Ziga Stopinsek <sigi.kajzer@gmail.com>"
+  ],
+  "description": "Store prices and generate shopping lists using Elasticsearch",
+  "main": "index.html",
+  "license": "GNU GPL v2",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "flakes": "~1.0.0",
+    "prism": "gh-pages"
+  }
+}
