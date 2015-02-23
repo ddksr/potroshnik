@@ -12,5 +12,5 @@ Check weather you have elasticsearch configured for cross-domain ajax requests:
 Checkout project and open index.html in your browser
 
 	git clone https://github.com/ddksr/potroshnik.git
-
-
+	cd potroshnik
+	bower install
