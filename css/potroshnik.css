@@ -8,6 +8,21 @@
 	display: none;
 }
 
+ul#shopping-list {
+	list-style-type: none;
+}
+
+ul#shopping-list li.shop {
+
+}
+
+ul#shopping-list ul {
+	list-style-type: circle;
+}
+
+ul#shopping-list ul li {
+
+}
 
 input[type="list"] {
 	padding: 6px 6px;
@@ -15,3 +30,4 @@ input[type="list"] {
 	line-height: 1.4;
 	margin-top: 2px;
 }
+

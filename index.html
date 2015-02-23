@@ -25,10 +25,7 @@
 	<div class="flakes-frame">
 
 		<div class="flakes-navigation">
-			<a href="index.html" class="logo">
-				<img src="bower_components/flakes/img/logo.png" width="120">
-			</a>
-
+			<h1 class="logo">Potroshnik</h1>
 			<ul>
 				<li class="title">Administration</li>
 				<li><a href="#/page/add-article">Add article</a></li>
@@ -46,13 +43,7 @@
 		<div class="flakes-content">
 
 			<div class="flakes-mobile-top-bar">
-				<a href="" class="logo-wrap">
-					<img src="bower_components/flakes/img/logo.png" height="30px">
-				</a>
-
-				<a href="" class="navigation-expand-target">
-					<img src="bower_components/flakes/img/site-wide/navigation-expand-target.png" height="26px">
-				</a>
+				Potroshnik
 			</div>
 
 			<div class="view-wrap">
@@ -147,8 +138,23 @@
 						</fieldset>
 					</form>
 				</div>
-				<div id="page-generate" class="page">
-					Generate shopping list
+				<div id="page-generate-list" class="page" data-init="clearShoppingList">
+					<form action="#/page/generate-list" data-callback="addToShoppingList">
+						<fieldset>
+							<ul>
+								<li>
+									<label>Item</label>
+									<input type="list" name="item" list="groups-list" value="" />
+								</li>
+								<li>
+									<input type="submit" value="Add" />
+								</li>
+							</ul>
+						</fieldset>
+					</form>
+					<ul id="shopping-list">
+						
+					</ul>
 				</div>
 			</div>
 		</div>

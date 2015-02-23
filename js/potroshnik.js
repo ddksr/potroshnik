@@ -16,6 +16,26 @@
 						}
 					}
 				};
+			},
+			getBestArticle: function (x) {
+				return {
+					query: {
+						filtered: {
+							filter: {
+								or: [
+									{ term: { group: x } },
+								]
+							},
+							query: {
+								function_score: {
+									script_score : {
+										script: "- doc['price'].value * doc['quality'].value"
+									}
+								}
+							}
+						}
+					}
+				};
 			}
 		},
 		req = function (type, path, query, cbs) {
@@ -57,10 +77,10 @@
 			},
 			createTable: function (esResponse, header, url) {
 				var table = $(document.createElement('table')),
-					hRow = $(document.createElement('tr'));
+					hRow = $('<thead><tr></tr></thead>');
 				if (!esResponse) { return ''; }
 				if (url) {
-					hRow.append('<th>ID</th>');
+					hRow.append('<td>ID</td>');
 				}
 				$.each(header, function (i, obj) {
 					hRow.append('<th>' + obj.name + '</th>');
@@ -74,13 +94,42 @@
 								   '</a></td>');
 					}
 					$.each(header, function (j, h) {
-						row.append('<td>' + obj._source[h.key] +  '</td>');
+						var map = h.map || function (x) { return x; };
+						row.append('<td>' + map(obj._source[h.key]) +  '</td>');
 					});
 					table.append(row);
 				});
 				return table.html();
 			}
 		},
+		shoppingList = (function () {
+			var list = [],
+				addArticle = function (id, article) {
+					var ulList = $('#shopping-list .shop-' + article.shop),
+						li = $(document.createElement('li')).addClass('item');
+					if(!ulList.length) {
+						ulList = $(document.createElement('li'))
+							.addClass('shop').addClass('shop-' + article.shop);
+						ulList.append('<h3>' + article.shop + '</h3>');
+						ulList.append('<ul></ul>');
+						$('#shopping-list').append(ulList);
+						ulList = ulList.children('ul');
+					}
+					li.html(article.name + ' (' + article.price.toFixed(2) + ' $)');
+					ulList.append(li);
+				};
+
+			return {
+				add: function (id, article) {
+					list.push(article.group);
+					addArticle(id, article);
+				},
+				clear: function () {
+					list = [];
+					$('#shopping-list').html('');
+				}
+			};
+		}()),
 		showMessage = function (msg, type, container) {
 			var p = $(document.createElement('p')).addClass('flakes-message');
 			if (type) {	p.addClass(type); }
@@ -123,6 +172,8 @@
 			};
 		}()),
 		refreshDOM = function () {
+			$('#shops-list').html('');
+			$('#groups-list').html('');
 			$.each(cache.get('shop'), function (i, obj) {
 				$('#shops-list').append('<option value="' + obj + '"></option>');
 			});
@@ -192,6 +243,21 @@
 		window.location.href = "#/";
 	};
 
+	actions.clearShoppingList = function () {
+		shoppingList.clear();
+	};
+	actions.addToShoppingList = function () {
+		var item = $(this).find('[name="item"]');
+		req('POST', '/potroshnik/article/_search', queries.getBestArticle(item.val()), {
+			success: function (resp) {
+				var hits = resp.hits.hits;
+				if (hits) {
+					shoppingList.add(hits[0]._id, hits[0]._source);
+				}
+				item.val('');
+			}
+		});
+	};
 	actions.editArticle = function (id) {
 		var form = this,
 			data = null;
@@ -227,7 +293,7 @@
 			{ name: 'Group', key: 'group' },
 			{ name: 'Name', key: 'name' },
 			{ name: 'Shop', key: 'shop' },
-			{ name: 'Price', key: 'price' },
+			{ name: 'Price', key: 'price', map: function (x) { return x.toFixed(2) + ' €'; } },
 			{ name: 'Quality', key: 'quality' }
 		], '#/page/edit-article/'));
 	};
