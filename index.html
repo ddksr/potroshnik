@@ -1,0 +1,175 @@
+<!doctype html>
+<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="en" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="en" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="en" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"><!--<![endif]-->
+
+<head>
+	<title>Potroshnik</title>
+
+	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-touch-fullscreen" content="yes">
+	<meta charset="UTF-8" />
+
+	<link rel="stylesheet" type="text/css" href="bower_components/flakes/css/all.css">
+	<link rel="stylesheet" type="text/css" href="css/potroshnik.css">
+</head>
+
+<body>
+	<!--[if lt IE 7]>
+		<p class="chromeframe" style="background:#eee; padding:10px; width:100%">Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p>
+	<![endif]-->
+
+	<div class="flakes-frame">
+
+		<div class="flakes-navigation">
+			<a href="index.html" class="logo">
+				<img src="bower_components/flakes/img/logo.png" width="120">
+			</a>
+
+			<ul>
+				<li class="title">Administration</li>
+				<li><a href="#/page/add-article">Add article</a></li>
+				<li><a href="#/page/list-articles">List articles</a></li>
+				<li class="title">Shopping list</li>
+				<li><a href="#/page/generate-list">Generate</a></li>
+			</ul>
+
+			<p class="foot">
+				Connected to: <br />
+				<input id="es-url" type="text" value="http://localhost:9200" /> <a href="#/connect" class="button-gray smaller">Reconnect</a>
+			</p>
+		</div>
+
+		<div class="flakes-content">
+
+			<div class="flakes-mobile-top-bar">
+				<a href="" class="logo-wrap">
+					<img src="bower_components/flakes/img/logo.png" height="30px">
+				</a>
+
+				<a href="" class="navigation-expand-target">
+					<img src="bower_components/flakes/img/site-wide/navigation-expand-target.png" height="26px">
+				</a>
+			</div>
+
+			<div class="view-wrap">
+				<div id="messages"></div>
+				<div id="page-list-articles" class="page current" data-init="showArticles">
+					<div class="flakes-search">
+						 <input id="article-search" class="search-box" placeholder="Search articles" />
+					</div>
+					<table id="article-list" class="flakes-table">
+						
+					</table>
+				</div>
+				<div id="page-add-article" class="page">
+					<form action="#/page/add-article" data-callback="newArticle" data-id="">
+						<fieldset>
+							<legend>New article</legend>
+							<ul>
+								<li>
+									<label>Article name</label>
+									<input type="text" name="name" />
+								</li>
+								<li>
+									<label>Article group</label>
+									<input type="list" list="groups-list" name="group" id="new-article-group" />
+								</li>
+								<li>
+									<label>Shop</label>
+									<input type="list" list="shops-list" name="shop"  id="new-article-shop" />
+								</li>
+								<li>
+									<label>Price</label>
+									<input type="text" name="price" />
+								</li>
+								<li>
+									<label>Quality</label>
+									<select name="quality">
+										<option value="0.8">Amazing</option>
+										<option value="0.9">Good</option>
+										<option value="1.0" selected="selected">Average</option>
+										<option value="1.1">Bad</option>
+										<option value="1.2">Worst</option>
+										<option value="1000">Ignore</option>
+									</select>
+								</li>
+								<li>
+									<label>Description</label>
+									<textarea name="description"></textarea>
+								</li>
+							</ul>
+							<input class="button-gray right" type="submit" value="Save" />
+						</fieldset>
+					</form>
+				</div>
+				<div id="page-edit-article" class="page" data-init="editArticle">
+					<form action="#/page/edit-article" data-callback="editArticle" data-id="">
+						<fieldset>
+							<legend></legend>
+							<ul>
+								<li>
+									<label>Article name</label>
+									<input type="text" name="name" />
+								</li>
+								<li>
+									<label>Article group</label>
+									<input type="list" list="groups-list" name="group" id="new-article-group" />
+								</li>
+								<li>
+									<label>Shop</label>
+									<input type="list" list="shops-list" name="shop"  id="new-article-shop" />
+								</li>
+								<li>
+									<label>Price</label>
+									<input type="text" name="price" />
+								</li>
+								<li>
+									<label>Quality</label>
+									<select name="quality">
+										<option value="0.8">Amazing</option>
+										<option value="0.9">Good</option>
+										<option value="1.0" selected="selected">Average</option>
+										<option value="1.1">Bad</option>
+										<option value="1.2">Worst</option>
+										<option value="1000">Ignore</option>
+									</select>
+								</li>
+								<li>
+									<label>Description</label>
+									<textarea name="description"></textarea>
+								</li>
+							</ul>
+							<input class="button-gray right" type="submit" value="Save" />
+						</fieldset>
+					</form>
+				</div>
+				<div id="page-generate" class="page">
+					Generate shopping list
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="stash">
+		<datalist id="shops-list"></datalist>
+		<datalist id="groups-list"></datalist>
+	</div>
+
+
+	<link rel="stylesheet" type="text/css" href="bower_components/prism/themes/prism.css">
+	<link rel="stylesheet" type="text/css" href="bower_components/gridforms/gridforms/gridforms.css">
+
+	<script src="bower_components/jquery/dist/jquery.js"></script>
+	<script src="bower_components/snapjs/snap.js"></script>
+	<script src="bower_components/responsive-elements/responsive-elements.js"></script>
+	<script src="bower_components/gridforms/gridforms/gridforms.js"></script>
+
+	<script src="bower_components/flakes/js/base.js"></script>
+	<script src="bower_components/flakes/js/utils.js"></script>
+
+	<script src="js/potroshnik.js"></script>
+</body>
+</html>
