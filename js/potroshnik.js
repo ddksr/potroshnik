@@ -282,6 +282,10 @@
 	
 	commands.page = selectPage;
 	commands.connect = connect;
+	commands.refresh = function () {
+		window.location.href = "#";
+		window.location.reload();
+	};
 	commands.list = function (command) {
 		var html = $('#shopping-list')[0].outerHTML,
 			list = shoppingList.getList(),
