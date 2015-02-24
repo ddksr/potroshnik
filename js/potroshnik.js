@@ -2,6 +2,36 @@
 	var url = null,
 		deletedIds = [],
 		commands = {}, actions = {},
+		connect = function (cb) {
+			var after = function () {
+				if (cb) { cb();	}
+				refreshDOM();
+				showMessage('Connected.');
+			};
+			url = $('#es-url').val();
+			storage.set('url', url);
+			req('GET', '/', null, {
+				success: function () {
+					req('GET', '/potroshnik', null, {
+						statusCode: {
+							404: function () {
+								if (confirm('Potroshnik is not installed. Do you wish to install it?')) {
+									install();
+									after();
+								}
+							},
+							200: function () {
+								after();
+							}
+						}
+					});
+				},
+				error: function () {
+					alert('Could not connect to elasticsearch');
+				}
+			});
+			window.location.href = "#/";
+		},
 		queries = {
 			articleList: function (x) {
 				return {
@@ -46,7 +76,7 @@
 			return {
 				get: function (name, def) {
 					var val = localStorage[name];
-					return name !== undefined ? val : name;
+					return val !== undefined ? val : def;
 				},
 				set: function (name, val) {
 					localStorage.setItem(name, val);
@@ -105,6 +135,7 @@
 				});
 				table.append(hRow);
 				$.each(esResponse, function (i, obj) {
+					if ($.inArray(obj._id, deletedIds) != -1) { return; }
 					var row = $(document.createElement('tr'));
 					if (url) {
 						row.append('<td><a href="' + url + obj._id + '">' +
@@ -246,30 +277,11 @@
 			req('PUT', '/potroshnik');
 		};
 
-	url = storage.get('url');
+	url = storage.get('url', 'http://berta:9200');
+	$('#es-url').val(url);
 	
 	commands.page = selectPage;
-	commands.connect = function () {
-		url = $('#es-url').val();
-		req('GET', '/', null, {
-			success: function () {
-				storage.set('url', url);
-				req('GET', '/potroshnik', null, {
-					statusCode: {
-						404: function () {
-							if (confirm('Potroshnik is not installed. Do you wish to install it?')) {
-								install();
-							}
-						}
-					}
-				});
-			},
-			error: function () {
-				alert('Could not connect to elasticsearch');
-			}
-		});
-		window.location.href = "#/";
-	};
+	commands.connect = connect;
 	commands.list = function (command) {
 		var html = $('#shopping-list')[0].outerHTML,
 			list = shoppingList.getList(),
@@ -351,7 +363,8 @@
 			form.data('id', id);
 			data = req('GET', '/potroshnik/article/' + id, null, null)._source;
 			$.each(data, function (key, val) {
-				form.find('[name="' + key + '"]').val(val);
+				if (parseFloat(val) == val) { val = val.toFixed(1); }
+				form.find('[name="' + key + '"]').val(val + "");
 			});
 			form.find('legend').text('Edit article: ' + data.name);
 		}
@@ -378,9 +391,26 @@
 		req('POST', '/potroshnik/article/', data, {
 			success: function (resp) {
 				showMessage('Article added', 'success');
+				$.each(data, function (key, val) {
+					$(this).find('input[name="' + key + '"]').val("");
+				});
+				$(this).find('textarea').val("");
 				selectPage('edit-article', resp._id);
 			}
 		});
+	};
+	actions.removeArticle = function () {
+		var id = $('#page-edit-article form').data('id'),
+			name = $('#page-edit-article form input[name="name"]').val();
+		if (id && confirm('Do you really wish to remove article ' + name)) {
+			req('DELETE', '/potroshnik/article/' + id, null, {
+				success: function () {
+					deletedIds.push(id);
+					commands.page('list-articles');
+					showMessage('Article removed.');
+				}
+			});
+		}
 	};
 
 	execCommand();
@@ -392,7 +422,11 @@
 		actions[$(this).data('callback')].apply(this);
 	});
 
-	refreshDOM();
+	$('.action').on('click', function () {
+		actions[$(this).data('command')]();
+	});
+
+	connect();
 
 }(jQuery));
 
