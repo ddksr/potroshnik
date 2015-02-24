@@ -1,5 +1,6 @@
 (function ($) {
-	var url = 'http://localhost:9200',
+	var url = null,
+		deletedIds = [],
 		commands = {}, actions = {},
 		queries = {
 			articleList: function (x) {
@@ -38,6 +39,23 @@
 				};
 			}
 		},
+		storage = (function () {
+			if(typeof(Storage) !== "undefined") {
+				return { remove: function () {}, set: function () {}, get: function (name, def) { return def; }};
+			}
+			return {
+				get: function (name, def) {
+					var val = localStorage[name];
+					return name !== undefined ? val : name;
+				},
+				set: function (name, val) {
+					localStorage.setItem(name, val);
+				},
+				remove: function () {
+					localStorage.removeItem(name);
+				}
+			};
+		}()),
 		req = function (type, path, query, cbs) {
 			var async = true,
 				result = null;
@@ -105,7 +123,7 @@
 		shoppingList = (function () {
 			var list = [],
 				addArticle = function (id, article) {
-					var ulList = $('#shopping-list .shop-' + article.shop),
+					var ulList = $('#shopping-list .shop-' + article.shop + ' ul'),
 						li = $(document.createElement('li')).addClass('item');
 					if(!ulList.length) {
 						ulList = $(document.createElement('li'))
@@ -115,7 +133,7 @@
 						$('#shopping-list').append(ulList);
 						ulList = ulList.children('ul');
 					}
-					li.html(article.name + ' (' + article.price.toFixed(2) + ' $)');
+					li.html(article.name + ' (' + article.price.toFixed(2) + ' €)');
 					ulList.append(li);
 				};
 
@@ -127,6 +145,12 @@
 				clear: function () {
 					list = [];
 					$('#shopping-list').html('');
+				},
+				getList: function () {
+					return list;
+				},
+				setList: function (newList) {
+					list = newList;
 				}
 			};
 		}()),
@@ -221,11 +245,15 @@
 		install = function () {
 			req('PUT', '/potroshnik');
 		};
+
+	url = storage.get('url');
+	
 	commands.page = selectPage;
 	commands.connect = function () {
 		url = $('#es-url').val();
 		req('GET', '/', null, {
 			success: function () {
+				storage.set('url', url);
 				req('GET', '/potroshnik', null, {
 					statusCode: {
 						404: function () {
@@ -242,9 +270,56 @@
 		});
 		window.location.href = "#/";
 	};
-
+	commands.list = function (command) {
+		var html = $('#shopping-list')[0].outerHTML,
+			list = shoppingList.getList(),
+			name = 'Shopping list ' + new Date() + ' (' + list.splice(0, 3).join(', ') + ')',
+			listActions = {
+				save: function () {
+					req('POST', '/potroshnik/list/', {
+						list: list,
+						html: html,
+						name: name
+					}, {
+						success: function (resp) {
+							$('#shopping-list').data('listId', resp._id);
+							setTimeout(actions.clearShoppingList, 1000);
+						}
+					});
+				},
+				remove: function () {
+					var id = $('#shopping-list').data('listId');
+					if (id) {
+						req('DELETE', '/potroshnik/list/' + id, null, {
+							success: function () {
+								actions.clearShoppingList();
+								deletedIds.push(id);
+							}
+						});
+					}
+				}
+			};
+		listActions[command]();
+	};
 	actions.clearShoppingList = function () {
 		shoppingList.clear();
+		window.location.href = "#/";
+		req('GET', '/potroshnik/list/_search', null, {
+			success: function (resp) {
+				$('#saved-lists').html('');
+				$.each(resp.hits.hits, function (i, hit) {
+					if ($.inArray(hit._id, deletedIds) !== -1) { return; }
+					var li = $(document.createElement('li')).addClass('shopping-list');
+					li.text(hit._source.name);
+					li.on('click', function () {
+						shoppingList.setList(hit._source.list);
+						$('#shopping-list').data('listId', hit._id);
+						$('#shopping-list').html(hit._source.html);
+					});
+					$('#saved-lists').append(li);
+				});
+			}
+		});
 	};
 	actions.addToShoppingList = function () {
 		var item = $(this).find('[name="item"]');

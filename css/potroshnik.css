@@ -24,6 +24,15 @@ ul#shopping-list ul li {
 
 }
 
+ul#saved-lists {
+
+}
+
+ul#saved-lists li {
+	cursor: pointer;
+}
+
+
 input[type="list"] {
 	padding: 6px 6px;
 	width: 100%;
