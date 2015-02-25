@@ -543,15 +543,13 @@
 		], '#/page/edit-article/', 'Product'));
 	};
 	actions.newArticle = function () {
-		var data = utils.getFormData(this, { 'quality': parseFloat, 'price': parseFloat });
+		var form = $(this),
+			data = utils.getFormData(this, { 'quality': parseFloat, 'price': parseFloat });
 		checkRelated(data);
 		req('POST', '/potroshnik/article/', dataPreparators.article(data), {
 			success: function (resp) {
 				showMessage('Article added', 'success');
-				$.each(data, function (key, val) {
-					$(this).find('input[name="' + key + '"]').val("");
-				});
-				$(this).find('textarea').val("");
+				form.find('select,input,textarea').val('');
 				selectPage('edit-article', resp._id);
 			}
 		});
