@@ -2,6 +2,23 @@
 	var url = null,
 		deletedIds = [],
 		commands = {}, actions = {},
+		dataMaps = {
+			floats: {
+				price: 2,
+				quality: 1,
+				quantity: 0
+			}
+		},
+		hash = function (str) {
+			var hash = 0, i, chr, len;
+			if (str.length == 0) return hash;
+			for (i = 0, len = str.length; i < len; i++) {
+				chr   = str.charCodeAt(i);
+				hash  = ((hash << 5) - hash) + chr;
+				hash |= 0; // Convert to 32bit integer
+			}
+			return hash;
+		},
 		connect = function (cb) {
 			var after = function () {
 				if (cb) { cb();	}
@@ -33,6 +50,11 @@
 			window.location.href = "#/";
 		},
 		queries = {
+			articleListAll: function () {
+				return {
+					size: 100
+				};
+			},
 			articleList: function (x) {
 				return {
 					query: {
@@ -45,7 +67,8 @@
 								]
 							}
 						}
-					}
+					},
+					size: 100
 				};
 			},
 			getBestArticle: function (x) {
@@ -60,7 +83,7 @@
 							query: {
 								function_score: {
 									script_score : {
-										script: "- doc['price'].value * doc['quality'].value"
+										script: "- doc['price'].value / doc['units'].value * doc['quality'].value"
 									}
 								}
 							}
@@ -123,12 +146,12 @@
 				});
 				return data;
 			},
-			createTable: function (esResponse, header, url) {
+			createTable: function (esResponse, header, url, urlName) {
 				var table = $(document.createElement('table')),
 					hRow = $('<thead><tr></tr></thead>');
 				if (!esResponse) { return ''; }
 				if (url) {
-					hRow.append('<td>ID</td>');
+					hRow.append('<td>' + (urlName || 'ID') + '</td>');
 				}
 				$.each(header, function (i, obj) {
 					hRow.append('<th>' + obj.name + '</th>');
@@ -139,7 +162,7 @@
 					var row = $(document.createElement('tr'));
 					if (url) {
 						row.append('<td><a href="' + url + obj._id + '">' +
-								   obj._id +
+								   obj._source.name +
 								   '</a></td>');
 					}
 					$.each(header, function (j, h) {
@@ -245,16 +268,20 @@
 			}
 		},
 		checkRelated = function (data) {
-			var updateCache = false;
+			var updateCache = false,
+				id = null;
 			if ($.inArray(data.shop, cache.get('shop')) == -1) {
-				req('POST', '/potroshnik/shop/', {
+				id = 's' + hash(data.shop);
+				req('PUT', '/potroshnik/shop/' + id, {
 					name: data.shop
 				}, null);
 				updateCache = true;
 			}
 			if ($.inArray(data.group, cache.get('group')) == -1) {
-				req('POST', '/potroshnik/group/', {
-					name: data.group
+				id = 'g' + hash(data.group);
+				req('PUT', '/potroshnik/group/' + id, {
+					name: data.group,
+					unit: data.unitName.toLowerCase()
 				}, null);
 				updateCache = true;
 			}
@@ -365,9 +392,10 @@
 		} else {
 			form = $('#page-edit-article form');
 			form.data('id', id);
+			form.find('ul input,select,textarea').val('');
 			data = req('GET', '/potroshnik/article/' + id, null, null)._source;
 			$.each(data, function (key, val) {
-				if (parseFloat(val) == val) { val = val.toFixed(1); }
+				if (dataMaps.floats[key] != undefined) { val = val.toFixed(dataMaps.floats[key]); }
 				form.find('[name="' + key + '"]').val(val + "");
 			});
 			form.find('legend').text('Edit article: ' + data.name);
@@ -379,15 +407,16 @@
 			filter = queryString && queryString.length >= 3;
 		if (queryString && !filter) { return; }
 		resp = req('POST', '/potroshnik/article/_search',
-				   filter ? queries.articleList(queryString) : null,
+				   filter ? queries.articleList(queryString) : queries.articleListAll(),
 				   null);
 		$('#article-list').html(utils.createTable(resp.hits.hits, [
 			{ name: 'Group', key: 'group' },
-			{ name: 'Name', key: 'name' },
 			{ name: 'Shop', key: 'shop' },
 			{ name: 'Price', key: 'price', map: function (x) { return x.toFixed(2) + ' €'; } },
-			{ name: 'Quality', key: 'quality' }
-		], '#/page/edit-article/'));
+			{ name: 'Quality', key: 'quality' },
+			{ name: 'Quantity', key: 'units' },
+			{ name: 'Unit', key: 'unitName' }
+		], '#/page/edit-article/', 'Product'));
 	};
 	actions.newArticle = function () {
 		var data = utils.getFormData(this, { 'quality': parseFloat, 'price': parseFloat });
@@ -430,7 +459,17 @@
 		actions[$(this).data('command')]();
 	});
 
-	connect();
+	$('.article-group').on('change', function () {
+		var form = $(this).parents('form'),
+			id = hash($(this).val());
+		req('GET', '/potroshnik/group/g' + id, null, {
+			success: function (resp) {
+				form.find('[name="unitName"]').val(resp._source.unit);
+			}
+		});
+		
+	});
 
+	connect();
 }(jQuery));
 

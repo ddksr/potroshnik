@@ -52,9 +52,7 @@
 					<div class="flakes-search">
 						 <input id="article-search" class="search-box" placeholder="Search articles" />
 					</div>
-					<table id="article-list" class="flakes-table">
-						
-					</table>
+					<table id="article-list" class="flakes-table"></table>
 				</div>
 				<div id="page-add-article" class="page">
 					<form action="#/page/add-article" data-callback="newArticle" data-id="">
@@ -62,12 +60,12 @@
 							<legend>New article</legend>
 							<ul>
 								<li>
-									<label>Article name</label>
+									<label>Product</label>
 									<input type="text" name="name" />
 								</li>
 								<li>
 									<label>Article group</label>
-									<input type="list" list="groups-list" name="group" id="new-article-group" />
+									<input type="list" list="groups-list" name="group" id="new-article-group" class="article-group" />
 								</li>
 								<li>
 									<label>Shop</label>
@@ -76,6 +74,14 @@
 								<li>
 									<label>Price</label>
 									<input type="text" name="price" />
+								</li>
+								<li>
+									<label>Quantity</label>
+									<input type="text" name="units" />
+								</li>
+								<li>
+									<label>Unit type</label>
+									<input type="text" name="unitName" value="g" />
 								</li>
 								<li>
 									<label>Quality</label>
@@ -103,12 +109,12 @@
 							<legend></legend>
 							<ul>
 								<li>
-									<label>Article name</label>
+									<label>Product</label>
 									<input type="text" name="name" />
 								</li>
 								<li>
 									<label>Article group</label>
-									<input type="list" list="groups-list" name="group" id="new-article-group" />
+									<input type="list" list="groups-list" name="group" id="new-article-group" class="article-group" disabled="disabled"/>
 								</li>
 								<li>
 									<label>Shop</label>
@@ -117,6 +123,14 @@
 								<li>
 									<label>Price</label>
 									<input type="text" name="price" />
+								</li>
+								<li>
+									<label>Quantity</label>
+									<input type="text" name="units" />
+								</li>
+								<li>
+									<label>Unit type</label>
+									<input type="text" name="unitName" value="" />
 								</li>
 								<li>
 									<label>Quality</label>
