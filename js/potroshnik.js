@@ -10,6 +10,13 @@
 				quantity: 0
 			}
 		},
+		dataPreparators = {
+			article: function (data) {
+				data.category = data.group;
+				data.unitName = data.unitName.toLowerCase();
+				return data;
+			}
+		},
 		hash = function (str) {
 			var hash = 0, i, chr, len;
 			if (str.length == 0) return hash;
@@ -79,9 +86,7 @@
 					query: {
 						filtered: {
 							filter: {
-								or: [
-									{ term: { group: x } },
-								]
+								term: { category: x }
 							},
 							query: {
 								function_score: {
@@ -198,7 +203,10 @@
 			var list = [],
 				addArticle = function (id, article) {
 					var ulList = $('#shopping-list .shop-' + article.shop + ' ul'),
-						li = $(document.createElement('li')).addClass('item');
+						li = $(document.createElement('li')).addClass('item'),
+						name = article.name + ' ',
+						units = article.units + ' ' + article.unitName + ', ',
+						price = article.price.toFixed(2) + ' €';
 					if(!ulList.length) {
 						ulList = $(document.createElement('li'))
 							.addClass('shop').addClass('shop-' + article.shop);
@@ -207,7 +215,7 @@
 						$('#shopping-list').append(ulList);
 						ulList = ulList.children('ul');
 					}
-					li.html(article.name + ' (' + article.price.toFixed(2) + ' €)');
+					li.html(name + ' (' + units + price + ')');
 					ulList.append(li);
 				};
 
@@ -321,7 +329,44 @@
 			commands[segments[0]].apply(null, segments.splice(1));
 		},
 		install = function () {
-			req('PUT', '/potroshnik');
+			req('PUT', '/potroshnik', null, null);
+			req('PUT', '/potroshnik/_mapping/article', {
+				"article": {
+					"properties": {
+						"group": { "type": "string"	},
+						"category": { "type": "string", "index": "not_analyzed"	},
+						"name": { "type": "string" },
+						"price": { "type": "long" },
+						"quality": { "type": "long"	},
+						"shop": { "type": "string" },
+						"unitName": { "type": "string" },
+						"units": { "type": "long"	}
+					}
+				}
+			}, null);
+			req('PUT', '/potroshnik/_mapping/list', {
+				"list": {
+					"properties": {
+						"name": { "type": "string" },
+						"html": { "type": "string", "index": "not_analyzed" }
+					}
+				}
+			}, null);
+			req('PUT', '/potroshnik/_mapping/group', {
+				"group": {
+					"properties": {
+						"name": { "type": "string" },
+						"unit": { "type": "string", "index": "not_analyzed" }
+					}
+				}
+			}, null);
+			req('PUT', '/potroshnik/_mapping/shop', {
+				"shop": {
+					"properties": {
+						"name": { "type": "string" }
+					}
+				}
+			}, null);
 		};
 
 	url = storage.get('url', 'http://berta:9200');
@@ -389,7 +434,7 @@
 		req('POST', '/potroshnik/article/_search', queries.getBestArticle(item.val()), {
 			success: function (resp) {
 				var hits = resp.hits.hits;
-				if (hits) {
+				if (hits.length > 0) {
 					shoppingList.add(hits[0]._id, hits[0]._source);
 				}
 				item.val('');
@@ -404,7 +449,7 @@
 			data = utils.getFormData(form, { 'quality': parseFloat, 'price': parseFloat });
 			checkRelated(data);
 			// save data
-			req('PUT', '/potroshnik/article/' + id, data, {
+			req('PUT', '/potroshnik/article/' + id, dataPreparators.article(data), {
 				success: function (resp) {
 					showMessage('Article saved', 'success');
 				}
@@ -445,7 +490,7 @@
 	actions.newArticle = function () {
 		var data = utils.getFormData(this, { 'quality': parseFloat, 'price': parseFloat });
 		checkRelated(data);
-		req('POST', '/potroshnik/article/', data, {
+		req('POST', '/potroshnik/article/', dataPreparators.article(data), {
 			success: function (resp) {
 				showMessage('Article added', 'success');
 				$.each(data, function (key, val) {
