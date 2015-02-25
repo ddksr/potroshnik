@@ -175,7 +175,7 @@
 					}
 					$.each(header, function (j, h) {
 						var map = h.map || function (x) { return x; };
-						row.append('<td>' + map(obj._source[h.key]) +  '</td>');
+						row.append('<td>' + map(obj._source[h.key], obj) +  '</td>');
 					});
 					table.append(row);
 				});
@@ -441,6 +441,59 @@
 			}
 		});
 	};
+	actions.editGroup = function (id) {
+		var form = this,
+			oldName = null,
+			oldId = null,
+			data = null;
+		if (id === undefined) {
+			oldId = $(form).data('id');
+			oldName = $(form).data('name');
+			data = utils.getFormData(form);
+			id = 'g' + hash(data.name);
+			// save data
+			req('PUT', '/potroshnik/group/' + id, data, {
+				success: function (resp) {
+					showMessage('Group saved', 'success');
+					cache.clear();
+					refreshDOM();
+					if (id == oldId) { return; }
+					req('DELETE', '/potroshnik/group/' + oldId, null, {
+						success: function () {
+							deletedIds.push('g' + hash(oldName));
+						}
+					});
+
+					req('POST', '/potroshnik/article/_search', {
+						query: { filtered: { filter: {
+							term: { category: oldName }
+						}}}
+					}, {
+						success: function (resp) {
+							$.each(resp.hits.hits, function (i, obj) {
+								req('POST', '/potroshnik/article/' + obj._id + '/_update', {
+									doc: {
+										group: data.name,
+										category: data.name
+									}
+								});
+							});
+						}
+					});
+				}
+			});
+		} else {
+			form = $('#page-edit-group form');
+			form.data('id', id);
+			form.find('ul input,select,textarea').val('');
+			data = req('GET', '/potroshnik/group/' + id, null, null)._source;
+			form.data('name', data.name);
+			$.each(data, function (key, val) {
+				form.find('[name="' + key + '"]').val(val + "");
+			});
+			form.find('legend').text('Edit group: ' + data.name);
+		}
+	};
 	actions.editArticle = function (id) {
 		var form = this,
 			data = null;
@@ -479,7 +532,9 @@
 				   null);
 		pagination(page, resp.hits.total);
 		$('#article-list').html(utils.createTable(resp.hits.hits, [
-			{ name: 'Group', key: 'group' },
+			{ name: 'Group', key: 'group', map: function (x) {
+				return '<a href="#/page/edit-group/g' + hash(x) + '">' + x + '</a>';
+			} },
 			{ name: 'Shop', key: 'shop' },
 			{ name: 'Price', key: 'price', map: function (x) { return x.toFixed(2) + ' €'; } },
 			{ name: 'Quality', key: 'quality' },
@@ -538,7 +593,6 @@
 		});
 		
 	});
-
 	connect();
 }(jQuery));
 

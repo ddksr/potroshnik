@@ -55,6 +55,24 @@
 					<table id="article-list" class="flakes-table"></table>
 					<div class="pagination"></div>
 				</div>
+				<div id="page-edit-group" class="page" data-init="editGroup">
+					<form action="#/page/edit-group" data-callback="editGroup" data-id="">
+						<fieldset>
+							<legend></legend>
+							<ul>
+								<li>
+									<label>Group name</label>
+									<input type="text" name="name" />
+								</li>
+								<li>
+									<label>Unit</label>
+									<input type="text" name="unit" />
+								</li>
+							</ul>
+							<input class="button-gray right" type="submit" value="Save and update articles" />
+						</fieldset>
+					</form>
+				</div>
 				<div id="page-add-article" class="page">
 					<form action="#/page/add-article" data-callback="newArticle" data-id="">
 						<fieldset>
@@ -92,7 +110,7 @@
 										<option value="1.0" selected="selected">Average</option>
 										<option value="1.1">Bad</option>
 										<option value="1.2">Worst</option>
-										<option value="1000">Ignore</option>
+										<option value="1000.0">Ignore</option>
 									</select>
 								</li>
 								<li>
