@@ -1,6 +1,7 @@
 (function ($) {
 	var url = null,
 		deletedIds = [],
+		perPage = 50,
 		commands = {}, actions = {},
 		dataMaps = {
 			floats: {
@@ -50,12 +51,13 @@
 			window.location.href = "#/";
 		},
 		queries = {
-			articleListAll: function () {
+			articleListAll: function (offset) {
 				return {
-					size: 100
+					size: perPage,
+					from: offset ? offset : 0
 				};
 			},
-			articleList: function (x) {
+			articleList: function (x, offset) {
 				return {
 					query: {
 						filtered: {
@@ -68,7 +70,8 @@
 							}
 						}
 					},
-					size: 100
+					size: perPage,
+					from: offset ? offset : 0
 				};
 			},
 			getBestArticle: function (x) {
@@ -173,6 +176,23 @@
 				});
 				return table.html();
 			}
+		},
+		pagination = function (page, total) {
+			var i = 0, pages = parseInt(total / perPage) + 1,
+				html = '', pageName = '';
+			page = parseInt(page, 10);
+			if (page == pages) { return; }
+			if (page > 1) {
+				html += '<a href="#/page/list-articles/' + (page - 1) + '">&lsaquo;</a> ';
+			}
+			for (i = 1; i <= pages; i++) {
+				pageName = i == page ? ('<strong>' + i + '</strong>') : i;
+				html += '<a href="#/page/list-articles/' + i + '">' + pageName + '</a> ';
+			}
+			if (page < pages) {
+				html += '<a href="#/page/list-articles/' + (page + 1) + '">&rsaquo;</a> ';
+			}
+			$('.pagination').html(html);
 		},
 		shoppingList = (function () {
 			var list = [],
@@ -401,14 +421,18 @@
 			form.find('legend').text('Edit article: ' + data.name);
 		}
 	};
-	actions.showArticles = function () {
+	actions.showArticles = function (page) {
 		var resp = {},
 			queryString = this !== window ? $(this).val() : '',
+			offset = 0,
 			filter = queryString && queryString.length >= 3;
+		page = page || 1;
+		offset = (page - 1) * perPage;
 		if (queryString && !filter) { return; }
 		resp = req('POST', '/potroshnik/article/_search',
-				   filter ? queries.articleList(queryString) : queries.articleListAll(),
+				   filter ? queries.articleList(queryString, offset) : queries.articleListAll(offset),
 				   null);
+		pagination(page, resp.hits.total);
 		$('#article-list').html(utils.createTable(resp.hits.hits, [
 			{ name: 'Group', key: 'group' },
 			{ name: 'Shop', key: 'shop' },
