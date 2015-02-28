@@ -550,6 +550,7 @@
 			success: function (resp) {
 				showMessage('Article added', 'success');
 				form.find('ul select,ul input,ul textarea').val('');
+				window.location.href = "#/";
 				selectPage('edit-article', resp._id);
 			}
 		});

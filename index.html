@@ -80,27 +80,27 @@
 							<ul>
 								<li>
 									<label>Product</label>
-									<input type="text" name="name" />
+									<input type="text" name="name" required="required" />
 								</li>
 								<li>
 									<label>Article group</label>
-									<input type="list" list="groups-list" name="group" id="new-article-group" class="article-group" />
+									<input type="list" list="groups-list" name="group" id="new-article-group" class="article-group"  required="required" />
 								</li>
 								<li>
 									<label>Shop</label>
-									<input type="list" list="shops-list" name="shop"  id="new-article-shop" />
+									<input type="list" list="shops-list" name="shop"  id="new-article-shop"  required="required" />
 								</li>
 								<li>
 									<label>Price</label>
-									<input type="text" name="price" />
+									<input type="text" name="price"  required="required" pattern="^\d+(\.\d+)*$" />
 								</li>
 								<li>
 									<label>Quantity</label>
-									<input type="text" name="units" />
+									<input type="text" name="units"  required="required" pattern="^\d+(\.\d+)*$" />
 								</li>
 								<li>
 									<label>Unit type</label>
-									<input type="text" name="unitName" value="g" />
+									<input type="text" name="unitName" value="g"  required="required" pattern="^[a-z]+$" />
 								</li>
 								<li>
 									<label>Quality</label>
@@ -129,27 +129,27 @@
 							<ul>
 								<li>
 									<label>Product</label>
-									<input type="text" name="name" />
+									<input type="text" name="name" required="required" />
 								</li>
 								<li>
 									<label>Article group</label>
-									<input type="list" list="groups-list" name="group" id="new-article-group" class="article-group" disabled="disabled"/>
+									<input type="list" list="groups-list" name="group" id="new-article-group" class="article-group" disabled="disabled" required="required" />
 								</li>
 								<li>
 									<label>Shop</label>
-									<input type="list" list="shops-list" name="shop"  id="new-article-shop" />
+									<input type="list" list="shops-list" name="shop"  id="new-article-shop" required="required" />
 								</li>
 								<li>
 									<label>Price</label>
-									<input type="text" name="price" />
+									<input type="text" name="price" required="required" pattern="^\d+(\.\d+)*$" />
 								</li>
 								<li>
 									<label>Quantity</label>
-									<input type="text" name="units" />
+									<input type="text" name="units" required="required" pattern="^\d+(\.\d+)*$" />
 								</li>
 								<li>
 									<label>Unit type</label>
-									<input type="text" name="unitName" value="" />
+									<input type="text" name="unitName" value="" required="required" pattern="^[a-z]+$" />
 								</li>
 								<li>
 									<label>Quality</label>
