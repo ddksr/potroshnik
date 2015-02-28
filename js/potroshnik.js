@@ -513,7 +513,7 @@
 			form.find('ul input,select,textarea').val('');
 			data = req('GET', '/potroshnik/article/' + id, null, null)._source;
 			$.each(data, function (key, val) {
-				if (dataMaps.floats[key] != undefined) { val = val.toFixed(dataMaps.floats[key]); }
+				if (val && dataMaps.floats[key] != undefined) { val = val.toFixed(dataMaps.floats[key]); }
 				form.find('[name="' + key + '"]').val(val + "");
 			});
 			form.find('legend').text('Edit article: ' + data.name);
@@ -549,7 +549,7 @@
 		req('POST', '/potroshnik/article/', dataPreparators.article(data), {
 			success: function (resp) {
 				showMessage('Article added', 'success');
-				form.find('select,input,textarea').val('');
+				form.find('ul select,ul input,ul textarea').val('');
 				selectPage('edit-article', resp._id);
 			}
 		});
